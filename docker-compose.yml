@@ -1,5 +1,26 @@
-version: "3.9"
 services:
+  lance-dev:
+    build:
+      context: ./docker
+      dockerfile: Dockerfile.dev
+    init: true
+    stdin_open: true
+    tty: true
+    working_dir: /workspace/lance
+    environment:
+      CARGO_TARGET_DIR: /workspace/target
+      CARGO_REGISTRIES_CRATES_IO_INDEX: sparse+https://rsproxy.cn/index/
+      CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+      RUST_BACKTRACE: "1"
+      RUSTUP_TOOLCHAIN: 1.98.1-x86_64-unknown-linux-gnu
+    volumes:
+      - .:/workspace/source
+      - lance-target:/workspace/target
+      - lance-cargo-registry:/usr/local/cargo/registry
+      - lance-cargo-git:/usr/local/cargo/git
+    tmpfs:
+      - /workspace/lance
+
   localstack:
     image: localstack/localstack:4.0
     ports:
@@ -15,3 +36,8 @@ services:
       interval: 5s
       retries: 3
       start_period: 10s
+
+volumes:
+  lance-target:
+  lance-cargo-registry:
+  lance-cargo-git:

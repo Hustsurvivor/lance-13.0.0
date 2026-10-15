@@ -2,3 +2,5 @@ notebooks/** linguist-vendored
 Cargo.lock linguist-generated
 **/Cargo.lock linguist-generated
 rust/lance-file/test_data/**/*.lance binary
+docker/*.sh text eol=lf
+docker/Dockerfile* text eol=lf
