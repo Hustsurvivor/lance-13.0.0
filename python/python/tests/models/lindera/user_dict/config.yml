@@ -1,0 +1,4 @@
+segmenter:
+  mode: "normal"
+  dictionary: "./python/tests/models/lindera/ipadic/main"
+  user_dictionary: "./python/tests/models/lindera/user_dict/userdic.csv"

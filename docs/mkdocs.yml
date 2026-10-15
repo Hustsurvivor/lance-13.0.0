@@ -1,0 +1,55 @@
+site_name: Lance
+site_description: "Documentation for Lance, an open lakehouse format for Multimodal AI"
+site_url: https://lance.org/
+docs_dir: src
+
+repo_name: lance-format/lance
+repo_url: https://github.com/lance-format/lance
+
+# Custom theme implementing the "Lance Docs" design (see theme/).
+theme:
+  name: null
+  custom_dir: theme
+  locale: en
+  static_templates:
+    - 404.html
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      # Allow snippets to pull in files from the repo root (e.g. shared docs
+      # kept alongside Rust source). Paths are relative to the docs/ dir.
+      base_path:
+        - .
+        - ..
+  - pymdownx.tabbed:
+      alternate_style: true
+  # Autolink bare URLs (e.g. repository tables on the community pages).
+  - pymdownx.magiclink
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+  - awesome-pages
+  - mkdocs_protobuf:
+      proto_dir: ../protos
+
+hooks:
+  - hooks/pmc_roster.py
+
+copyright: © 2025 Lance Format. All rights reserved.

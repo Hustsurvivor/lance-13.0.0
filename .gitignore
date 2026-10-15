@@ -1,0 +1,129 @@
+# Prerequisites
+*.d
+
+# vim swap files
+*.swp
+
+# cargo config files
+.cargo/config
+python/.cargo/config
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Tracing files
+trace-*.json
+
+**/*~
+**/__pycache__
+build/
+dist/
+*.egg-info/
+.python-version
+
+.idea
+cmake-build-*
+.vscode
+.DS_Store
+.metals
+
+python/lance/_*.cpp
+
+bin/
+
+
+*.parquet
+*.parq
+
+python/thirdparty/arrow/
+python/wheels
+python/benchmark_data
+
+logs
+*.ckpt
+
+docs/_build
+docs/api/python
+docs/site
+docs/build
+
+**/.ipynb_checkpoints/
+docs/notebooks
+
+notebooks/sift
+notebooks/image_data/data
+benchmarks/sift/sift
+benchmarks/sift/sift.lance
+benchmarks/sift/lance_ivf*.csv
+**/sift.tar.gz
+
+wheelhouse
+
+# pandas testing
+.hypothesis
+
+
+**/df.json
+
+# Rust
+target
+**/sccache.log
+
+# c++ lsp
+.ccls-cache/
+
+python/venv
+test_data/venv
+.venv
+
+**/*.profraw
+*.lance
+!test_data/**/*.lance
+!rust/lance-file/test_data/**/*.lance
+
+# Pytest benchmarks
+.benchmarks/
+
+# Auto-built docs
+docs/src/format/catalog/**
+docs/src/format/namespace/**
+docs/src/format/layout.png
+docs/src/integrations/duckdb/**
+docs/src/integrations/huggingface/**
+docs/src/integrations/ray/**
+docs/src/integrations/spark/**
+docs/src/integrations/trino/**
+docs/src/community/project-specific/.pages
+docs/src/community/project-specific/lance/**
+docs/src/community/project-specific/namespace.md
+docs/src/community/project-specific/namespace-impls.md
+docs/src/community/project-specific/ray.md
+docs/src/community/project-specific/spark.md
+docs/src/community/project-specific/trino.md

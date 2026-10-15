@@ -1,0 +1,33 @@
+[default]
+extend-ignore-re = [
+    "(?Rm)^.*(#|//)\\s*spellchecker:disable-line$",
+    # Base64 bodies of PEM fixtures (certificates, keys) are not words.
+    "(?s)-----BEGIN [A-Z ]+-----.*?-----END [A-Z ]+-----",
+]
+
+[default.extend-words]
+DNE = "DNE"
+arange = "arange"
+nd = "nd"
+terrestial = "terrestial"
+abd = "abd"
+afe = "afe"
+typ = "typ"
+rabit = "rabit"
+flate = "flate"
+Ines = "Ines"
+alph = "alph"
+caf = "caf"
+
+[default.expect]
+nprobs = "nprobes"
+nprob = "nprobe"
+
+[files]
+extend-exclude = [
+    "notebooks/*.ipynb",
+    "*_THIRD_PARTY_LICENSES.*",
+    "rust/lance-file/test_data/exact_versions/*.lance",
+    "rust/lance-tokenizer/src/stop_word_filter/stopwords.rs",
+]
+# If a line ends with # or // and has spellchecker:disable-line, ignore it
