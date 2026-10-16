@@ -267,6 +267,7 @@ impl<'a> InsertBuilder<'a> {
         fragments: Vec<Fragment>,
         context: &WriteContext<'_>,
     ) -> Result<Transaction> {
+        let _timer = lance_core::metadata_metrics::phase("transaction_construction");
         let operation = match context.params.mode {
             WriteMode::Create => {
                 let mut upsert_values = HashMap::new();
@@ -322,6 +323,7 @@ impl<'a> InsertBuilder<'a> {
     }
 
     fn validate_write(&self, context: &mut WriteContext, data_schema: &Schema) -> Result<()> {
+        let _timer = lance_core::metadata_metrics::phase("write_version_validation");
         // Write mode
         match (&context.params.mode, &context.dest) {
             (WriteMode::Create, WriteDestination::Dataset(ds)) => {

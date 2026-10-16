@@ -964,6 +964,7 @@ impl TryFrom<pb::Manifest> for Manifest {
     type Error = Error;
 
     fn try_from(p: pb::Manifest) -> Result<Self> {
+        let _timer = lance_core::metadata_metrics::phase("manifest_structure_conversion");
         let timestamp_nanos = p.timestamp.map(|ts| {
             let sec = ts.seconds as u128 * 1e9 as u128;
             let nanos = ts.nanos as u128;
@@ -985,6 +986,7 @@ impl TryFrom<pb::Manifest> for Manifest {
             _ => None,
         };
         let mut interner = DataFileFieldInterner::default();
+        let fragment_timer = lance_core::metadata_metrics::phase("fragment_metadata_processing");
         let fragments = Arc::new(
             p.fragments
                 .into_iter()
@@ -992,6 +994,7 @@ impl TryFrom<pb::Manifest> for Manifest {
                 .collect::<Result<Vec<_>>>()?,
         );
         let fragment_offsets = compute_fragment_offsets(fragments.as_slice());
+        drop(fragment_timer);
         let fields_with_meta = FieldsWithMeta {
             fields: Fields(p.fields),
             metadata: p.schema_metadata,
@@ -1020,7 +1023,9 @@ impl TryFrom<pb::Manifest> for Manifest {
             Some(format) => DataStorageFormat::try_from(format)?,
         };
 
+        let schema_timer = lance_core::metadata_metrics::phase("schema_metadata_processing");
         let schema = Schema::try_from(fields_with_meta)?;
+        drop(schema_timer);
 
         Ok(Self {
             schema,

@@ -1113,11 +1113,14 @@ where
                     bytes_completed += data_file.file_size_bytes.get().map_or(0, |s| s.get());
                     rows_completed += num_rows as u64;
                     files_written += 1;
+                    let fragment_timer =
+                        lance_core::metadata_metrics::phase("fragment_metadata_generation");
                     let last_fragment = fragments.last_mut().ok_or_else(|| {
                         Error::internal("Writer completed a file without a pending fragment")
                     })?;
                     last_fragment.physical_rows = Some(num_rows as usize);
                     last_fragment.files.push(data_file);
+                    drop(fragment_timer);
                     // Notify after pushing the data file so it's tracked for cleanup
                     // if the callback fails.
                     let completed_fragment = fragments.last().ok_or_else(|| {
@@ -1179,9 +1182,12 @@ where
                 bytes_completed += data_file.file_size_bytes.get().map_or(0, |s| s.get());
                 rows_completed += num_rows as u64;
                 files_written += 1;
+                let fragment_timer =
+                    lance_core::metadata_metrics::phase("fragment_metadata_generation");
                 let last_fragment = fragments.last_mut().unwrap();
                 last_fragment.physical_rows = Some(num_rows as usize);
                 last_fragment.files.push(data_file);
+                drop(fragment_timer);
                 if let Some(cb) = &params.write_progress {
                     cb.call(WriteStats {
                         bytes_written: bytes_completed,
@@ -2234,6 +2240,7 @@ impl GenericWriter for V2WriterAdapter {
         Ok(self.writer.tell().await?)
     }
     async fn finish(&mut self) -> Result<(u32, DataFile)> {
+        let descriptor_timer = lance_core::metadata_metrics::phase("fragment_metadata_generation");
         let field_ids = self
             .writer
             .field_id_to_column_indices()
@@ -2246,7 +2253,9 @@ impl GenericWriter for V2WriterAdapter {
             .iter()
             .map(|(_, column_index)| *column_index as i32)
             .collect::<Vec<_>>();
+        drop(descriptor_timer);
         let write_summary = self.finish_file().await?;
+        let _timer = lance_core::metadata_metrics::phase("fragment_metadata_generation");
         let mut data_file = self
             .data_file
             .take()

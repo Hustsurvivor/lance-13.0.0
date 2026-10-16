@@ -38,6 +38,7 @@ pub async fn read_manifest(
     path: &Path,
     known_size: Option<u64>,
 ) -> Result<Manifest> {
+    let read_timer = lance_core::metadata_metrics::phase("manifest_read");
     let file_size = if let Some(known_size) = known_size {
         known_size
     } else {
@@ -54,6 +55,7 @@ pub async fn read_manifest(
     // In case of corruption, the known_size might be wrong. We can retry without
     // the size to be more robust.
     if (buf.len() < 16 || !buf.ends_with(MAGIC)) && known_size.is_some() {
+        drop(read_timer);
         return Box::pin(read_manifest(object_store, path, None)).await;
     }
 
@@ -104,16 +106,19 @@ pub async fn read_manifest(
         }
         let recorded_length = chunked.get_u32_le() as usize;
         chunked.truncate(chunked.remaining() - 16);
+        drop(read_timer);
         return decode_manifest(chunked, recorded_length);
     };
 
     let recorded_length = LittleEndian::read_u32(&buf[0..4]) as usize;
     // Need to trim the magic number at end and message length at beginning
     let buf = buf.slice(4..buf.len() - 16);
+    drop(read_timer);
     decode_manifest(buf, recorded_length)
 }
 
 fn decode_manifest(buf: impl Buf, recorded_length: usize) -> Result<Manifest> {
+    let _timer = lance_core::metadata_metrics::phase("manifest_deserialization");
     if buf.remaining() != recorded_length {
         return Err(Error::invalid_input(format!(
             "Invalid format: manifest length does not match. Expected {}, got {}",
@@ -133,6 +138,7 @@ pub async fn read_manifest_indexes(
     location: &ManifestLocation,
     manifest: &Manifest,
 ) -> Result<Vec<IndexMetadata>> {
+    let _timer = lance_core::metadata_metrics::phase("manifest_index_descriptors");
     if let Some(pos) = manifest.index_section.as_ref() {
         let result = read_index_section(object_store, &location.path, location.size, *pos).await;
         // A stale cached size makes the index offset fall outside the sized view,

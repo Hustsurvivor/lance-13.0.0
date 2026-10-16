@@ -1428,6 +1428,7 @@ impl TakeOperation {
 
 impl Scanner {
     pub fn new(dataset: Arc<Dataset>) -> Self {
+        let _timer = lance_core::metadata_metrics::phase("scan_metadata_planning");
         let projection_plan = ProjectionPlan::full(dataset.clone()).unwrap();
         let file_reader_options = dataset.file_reader_options.clone();
         let mut scanner = Self {
@@ -3030,14 +3031,19 @@ impl Scanner {
         query_filter: Option<QueryFilter>,
         fts_document_granularity: Option<DocumentGranularity>,
     ) -> Result<FilterPlan> {
+        let schema_timer = lance_core::metadata_metrics::phase("scan_metadata_planning");
         let filter_schema =
             self.filterable_schema_with_fts_granularity(fts_document_granularity)?;
         let planner = Planner::new(Arc::new(filter_schema.as_ref().into()));
+        drop(schema_timer);
 
         // Check expr filter
         let filter_plan = if let Some(filter) = self.filter.expr_filter.as_ref() {
+            let expression_timer = lance_core::metadata_metrics::phase("scan_metadata_planning");
             let expr = filter.to_datafusion(self.dataset.schema(), filter_schema.as_ref())?;
+            drop(expression_timer);
             let index_info = self.dataset.scalar_index_info().await?;
+            let _timer = lance_core::metadata_metrics::phase("scan_metadata_planning");
             let filter_plan =
                 planner.create_filter_plan(expr.clone(), &index_info, use_scalar_index)?;
 
@@ -3108,6 +3114,7 @@ impl Scanner {
     }
 
     fn plan_metadata_scan_range(&self) -> Option<ScanRangePlan> {
+        let _timer = lance_core::metadata_metrics::phase("scan_metadata_range_planning");
         self.dataset.manifest().writer_version.as_ref()?;
 
         let fragments = self
@@ -7253,6 +7260,7 @@ impl Scanner {
         ordered: bool,
     ) -> Arc<dyn ExecutionPlan> {
         log::trace!("scan_fragments covered {} fragments", fragments.len());
+        let _timer = lance_core::metadata_metrics::phase("scan_metadata_planning");
         let config = LanceScanConfig {
             batch_size: self.get_batch_size(),
             batch_readahead: self.batch_readahead,

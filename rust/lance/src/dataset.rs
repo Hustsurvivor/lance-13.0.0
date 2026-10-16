@@ -694,6 +694,7 @@ impl Dataset {
             .branch_location()
             .find_branch(standardized_branch.as_deref())?;
 
+        let resolution_timer = lance_core::metadata_metrics::phase("version_resolution");
         let manifest_location = if let Some(version_number) = version_number {
             self.commit_handler
                 .resolve_version_location(
@@ -708,6 +709,7 @@ impl Dataset {
                 .await?
         };
 
+        drop(resolution_timer);
         if self.already_checked_out(&manifest_location, standardized_branch.as_deref()) {
             return Ok(self.clone());
         }
@@ -753,6 +755,7 @@ impl Dataset {
         uri: &str,
         session: &Session,
     ) -> Result<Manifest> {
+        let read_timer = lance_core::metadata_metrics::phase("manifest_read");
         let object_reader = if let Some(size) = manifest_location.size {
             object_store
                 .open_with_size(&manifest_location.path, size as usize)
@@ -779,6 +782,7 @@ impl Dataset {
         // lacks the trailing magic) and retry with the true size, like
         // read_manifest.
         if manifest_location.size.is_some() && !last_block.ends_with(MAGIC) {
+            drop(read_timer);
             let manifest_location = ManifestLocation {
                 size: None,
                 ..manifest_location.clone()
@@ -796,7 +800,9 @@ impl Dataset {
 
         // If manifest is in the last block, we can decode directly from memory.
         let manifest_size = object_reader.size().await?;
+        drop(read_timer);
         let mut manifest = if manifest_size - offset <= last_block.len() {
+            let _timer = lance_core::metadata_metrics::phase("manifest_deserialization");
             let manifest_len = manifest_size - offset;
             let offset_in_block = last_block.len() - manifest_len;
             let message_len =
@@ -804,6 +810,7 @@ impl Dataset {
             let message_data = &last_block[offset_in_block + 4..offset_in_block + 4 + message_len];
             Manifest::try_from(lance_table::format::pb::Manifest::decode(message_data)?)
         } else {
+            let _timer = lance_core::metadata_metrics::phase("manifest_read_decode_remainder");
             let mut manifest: Manifest = read_struct(object_reader.as_ref(), offset).await?;
             manifest.detach_sparse_inline_row_ids(manifest_size - offset);
             Ok(manifest)
@@ -813,6 +820,7 @@ impl Dataset {
 
         versions::check_manifest_storage_version(&mut manifest)?;
 
+        let auxiliary_timer = lance_core::metadata_metrics::phase("manifest_auxiliary_metadata");
         // If indices were also in the last block, we can take the opportunity to
         // decode them now and cache them.
         if let Some(index_offset) = manifest.index_section
@@ -867,6 +875,7 @@ impl Dataset {
         }
 
         populate_manifest_schema_dictionaries(&mut manifest, object_reader.as_ref()).await?;
+        drop(auxiliary_timer);
 
         Ok(manifest)
     }
@@ -914,6 +923,7 @@ impl Dataset {
         store_params: Option<ObjectStoreParams>,
         base_store_params: Option<Arc<HashMap<String, ObjectStoreParams>>>,
     ) -> Result<Self> {
+        let _timer = lance_core::metadata_metrics::phase("fragment_metadata_processing");
         let refs = Refs::new(
             object_store.clone(),
             commit_handler.clone(),
@@ -4210,6 +4220,7 @@ pub(crate) async fn write_manifest_file(
     transaction: Option<lance_table::format::Transaction>,
     may_change_schema: bool,
 ) -> std::result::Result<ManifestLocation, CommitError> {
+    let _timer = lance_core::metadata_metrics::phase("commit_metadata_processing");
     validate_paired_feature_flags(manifest)?;
     if let Some(indices) = &indices {
         lance_table::system_index::frag_reuse::metadata::validate_flags(manifest, indices)?;

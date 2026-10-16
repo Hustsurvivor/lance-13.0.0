@@ -32,6 +32,7 @@ name = "write_read_ds"
 path = "src/write_read_ds.rs"
 
 [dependencies]
+serde_json.workspace = true
 arrow = { workspace = true }
 arrow-schema = { workspace = true }
 arrow-select = { workspace = true }
@@ -52,3 +53,11 @@ hf-hub = "0.4.2"
 parquet = { workspace = true }
 tokenizers = "0.15.2"
 rand.workspace = true
+
+[[example]]
+name = "write_lineitem"
+path = "../../damlake_test/write_lineitem.rs"
+
+[[example]]
+name = "scan_lineitem"
+path = "../../damlake_test/scan_lineitem.rs"

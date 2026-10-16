@@ -63,3 +63,7 @@ harness = false
 
 [lints]
 workspace = true
+
+[[test]]
+name = "metadata_metrics"
+path = "../../damlake_test/collector_tests.rs"

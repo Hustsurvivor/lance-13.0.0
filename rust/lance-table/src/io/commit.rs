@@ -218,12 +218,14 @@ pub fn write_manifest_file_to_path<'a>(
     transaction: Option<Transaction>,
 ) -> BoxFuture<'a, Result<WriteResult>> {
     Box::pin(async move {
+        let manifest_timer = lance_core::metadata_metrics::phase("manifest_serialize_write");
         let mut object_writer = ObjectWriter::new(object_store, path).await?;
         let pos = write_manifest(&mut object_writer, manifest, indices, transaction).await?;
         object_writer
             .write_magics(pos, MAJOR_VERSION, MINOR_VERSION, MAGIC)
             .await?;
         let res = Writer::shutdown(&mut object_writer).await?;
+        drop(manifest_timer);
         info!(target: TRACE_FILE_AUDIT, mode=AUDIT_MODE_CREATE, r#type=AUDIT_TYPE_MANIFEST, path = path.to_string());
         Ok(res)
     })

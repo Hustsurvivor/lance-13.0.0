@@ -386,6 +386,7 @@ pub(crate) async fn write_transaction_file(
     base_path: &Path,
     transaction: &pb::Transaction,
 ) -> Result<String> {
+    let _timer = lance_core::metadata_metrics::phase("transaction_serialize_write");
     let file_name = format!("{}-{}.txn", transaction.read_version, transaction.uuid);
     let path = base_path
         .clone()
@@ -1516,6 +1517,7 @@ async fn prepare_attempt(
 async fn load_and_sort_new_transactions(
     dataset: &Dataset,
 ) -> Result<(Dataset, Vec<(u64, Arc<Transaction>)>)> {
+    let _timer = lance_core::metadata_metrics::phase("transaction_discovery");
     let NewTransactionResult {
         dataset: new_ds,
         new_transactions,
@@ -1537,6 +1539,7 @@ async fn record_successful_commit(
     indices: Vec<IndexMetadata>,
     skip_auto_cleanup: bool,
 ) {
+    let cache_timer = lance_core::metadata_metrics::phase("commit_cache_update");
     let tx_key = crate::session::caches::TransactionKey {
         version: manifest.version,
     };
@@ -1565,6 +1568,7 @@ async fn record_successful_commit(
             .await;
     }
 
+    drop(cache_timer);
     if !skip_auto_cleanup {
         // Note: We're using the old dataset here (before the new manifest is committed).
         // This means cleanup runs based on the previous version's state, which may affect

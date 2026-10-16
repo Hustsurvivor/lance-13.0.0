@@ -111,6 +111,10 @@ test_data/venv
 # Pytest benchmarks
 .benchmarks/
 
+# Local lineitem experiment inputs and outputs
+/damlake_test/data/
+/damlake_test/results/
+
 # Auto-built docs
 docs/src/format/catalog/**
 docs/src/format/namespace/**

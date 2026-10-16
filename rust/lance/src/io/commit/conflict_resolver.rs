@@ -412,6 +412,7 @@ impl<'a> TransactionRebase<'a> {
     }
 
     pub fn check_txn(&mut self, other_transaction: &Transaction, other_version: u64) -> Result<()> {
+        let _timer = lance_core::metadata_metrics::phase("conflict_detection");
         // Either order: the claim was checked without the write's data.
         let ours = &self.transaction.operation;
         let theirs = &other_transaction.operation;

@@ -884,6 +884,7 @@ impl DatasetBuilder {
             }
             (Arc::new(manifest), location)
         } else {
+            let resolution_timer = lance_core::metadata_metrics::phase("version_resolution");
             let manifest_location = match version_number {
                 Some(version) => {
                     let target_manifest_result = commit_handler
@@ -916,6 +917,7 @@ impl DatasetBuilder {
                     })?,
             };
 
+            drop(resolution_timer);
             let manifest = Dataset::get_manifest(
                 &object_store,
                 &manifest_location,

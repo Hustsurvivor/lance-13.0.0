@@ -590,6 +590,7 @@ impl Transaction {
         config: &ManifestBuildConfig,
         read_version_state: Option<ReadVersionState<'_>>,
     ) -> Result<(Manifest, Vec<IndexMetadata>)> {
+        let _timer = lance_core::metadata_metrics::phase("manifest_construction");
         if prepared.manifest_version() != current_manifest.map(|manifest| manifest.version) {
             return Err(Error::invalid_input(format!(
                 "the index list was prepared against manifest version {:?} but the manifest \

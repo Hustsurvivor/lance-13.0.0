@@ -4791,6 +4791,7 @@ dependencies = [
  "object_store 0.14.1",
  "parquet",
  "rand 0.9.5",
+ "serde_json",
  "tempfile",
  "tokenizers",
  "tokio",
